@@ -93,7 +93,7 @@ export function AccountForm() {
 
   async function onSubmit(data: AccountFormValues) {
     try {
-      await axios.put("/api/users/update-account", data, {
+      await axios.patch("/api/users/update-account", data, {
         withCredentials: true,
       });
       await refreshUser();

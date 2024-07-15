@@ -1,26 +1,27 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Maximize2, Minimize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useMusicPlayer } from "@/hooks/useMusicPlayer";
+import PlayerControls from "@/components/music-player/PlayerControls";
+import ProgressBar from "@/components/music-player/ProgressBar";
+import VolumeControl from "@/components/music-player/VolumeControl";
+import AdditionalControls from "@/components/music-player/AdditionalControls";
+import ShareDialog from "@/components/music-player/ShareDialog";
 import { Track } from "@/types/Music";
-import { PlayerControls } from "./PlayerControls";
-import { ProgressBar } from "./ProgressBar";
-import { VolumeControl } from "./VolumeControl";
-import { AdditionalControls } from "./AdditionalControls";
-import { TrackInfo } from "./TrackInfo";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { useStreamingToken } from "@/hooks/useStreamingToken";
-import { ChevronDown, ChevronUp, Expand, SquareX } from "lucide-react";
+import Image from "next/image";
 
 interface MusicPlayerProps {
   currentTrack: Track | null;
   playlist: Track[];
   onTrackChange: (track: Track | null) => void;
-  onLike?: (trackId: string) => void;
-  onDislike?: (trackId: string) => void;
-  onShare?: (trackId: string) => void;
+  onLike?: (trackId: string) => Promise<void>;
+  onDislike?: (trackId: string) => Promise<void>;
+  onShare?: (trackId: string) => Promise<void>;
   autoPlay?: boolean;
 }
 
-export const MusicPlayer: React.FC<MusicPlayerProps> = ({
+const MusicPlayer: React.FC<MusicPlayerProps> = ({
   currentTrack,
   playlist,
   onTrackChange,
@@ -29,39 +30,44 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
   onShare,
   autoPlay = false,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const { streamUrl, isLoading } = useStreamingToken(currentTrack?._id);
   const {
     isPlaying,
-    currentTime,
-    duration,
-    volume,
-    isMuted,
-    isLooping,
-    isShuffled,
     isBuffering,
-    loadedChunks,
-    togglePlay,
-    toggleMute,
+    isExpanded,
+    toggleExpand,
     handleNext,
     handlePrevious,
-    handleVolumeChange,
+    togglePlay,
+    currentTime,
+    duration,
     handleSeek,
+    volume,
+    isMuted,
+    handleVolumeChange,
+    toggleMute,
+    isLooping,
     toggleLoop,
+    isShuffled,
     toggleShuffle,
-  } = useAudioPlayer(streamUrl, playlist, onTrackChange, autoPlay);
+    isLiked,
+    handleLike,
+    isDisliked,
+    handleDislike,
+    isShareDialogOpen,
+    setIsShareDialogOpen,
+    handleShare,
+    copyShareLink,
+    loadedChunks,
+  } = useMusicPlayer({
+    currentTrack,
+    playlist,
+    onTrackChange,
+    onLike,
+    onDislike,
+    onShare,
+    autoPlay,
+  });
 
-  const toggleExpand = () => setIsExpanded(!isExpanded);
-
-  useEffect(() => {
-    console.log('Current state:', {
-      streamUrl,
-      isPlaying,
-      isBuffering,
-      currentTrack: currentTrack?._id
-    });
-  }, [streamUrl, isPlaying, isBuffering, currentTrack]);
-  
   return (
     <AnimatePresence>
       <motion.div
@@ -70,55 +76,107 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
         exit={{ y: 100, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className={`fixed bottom-0 left-0 right-0 bg-gradient-to-t from-purple-900 to-black text-white p-4 z-50 ${
-          isExpanded ? "h-screen" : "h-24"
+          isExpanded ? "h-screen" : "h-24 sm:h-28"
         }`}
       >
         <div
           className={`flex ${
             isExpanded
               ? "flex-col items-center"
-              : "items-center justify-between"
+              : "flex-col sm:flex-row items-center justify-between"
           }`}
         >
-          <TrackInfo track={currentTrack} isExpanded={isExpanded} />
+          {/* Album cover and track info */}
+          <div
+            className={`flex items-center ${
+              isExpanded ? "flex-col mb-8" : "mb-4 sm:mb-0 sm:mr-4"
+            }`}
+          >
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`relative ${
+                isExpanded ? "w-64 h-64" : "w-16 h-16 sm:w-20 sm:h-20"
+              } mr-4`}
+            >
+              {currentTrack && (
+                <Image
+                  src={currentTrack.artist.image}
+                  alt={`${currentTrack.title} cover`}
+                  layout="fill"
+                  objectFit="cover"
+                  className="rounded-lg"
+                />
+              )}
+            </motion.div>
+            <div className={`${isExpanded ? "text-center mt-4" : "text-left"}`}>
+              <h3 className="font-bold text-sm sm:text-base">
+                {currentTrack?.title}
+              </h3>
+              <p className="text-gray-400 text-xs sm:text-sm">
+                {currentTrack?.artist.name}
+              </p>
+            </div>
+          </div>
+
           <PlayerControls
             isPlaying={isPlaying}
             isBuffering={isBuffering}
-            togglePlay={togglePlay}
-            handlePrevious={handlePrevious}
-            handleNext={handleNext}
+            onPrevious={handlePrevious}
+            onPlayPause={togglePlay}
+            onNext={handleNext}
           />
+
           <ProgressBar
             currentTime={currentTime}
             duration={duration}
-            loadedChunks={loadedChunks}
             onSeek={handleSeek}
+            loadedChunks={loadedChunks}
             isExpanded={isExpanded}
           />
+
           <VolumeControl
             volume={volume}
             isMuted={isMuted}
-            toggleMute={toggleMute}
-            handleVolumeChange={handleVolumeChange}
+            onVolumeChange={handleVolumeChange}
+            onToggleMute={toggleMute}
           />
+
           <AdditionalControls
             isLooping={isLooping}
             isShuffled={isShuffled}
-            toggleLoop={toggleLoop}
-            toggleShuffle={toggleShuffle}
-            onLike={onLike}
-            onDislike={onDislike}
-            onShare={onShare}
-            trackId={currentTrack?._id}
+            isLiked={isLiked}
+            isDisliked={isDisliked}
+            onToggleLoop={toggleLoop}
+            onToggleShuffle={toggleShuffle}
+            onLike={handleLike}
+            onDislike={handleDislike}
+            onShare={() => setIsShareDialogOpen(true)}
           />
-          <button
+
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={toggleExpand}
-            className="ml-4 p-2 rounded-full hover:bg-gray-700 transition-colors"
+            className="ml-4"
           >
-            {isExpanded ? <SquareX /> : <Expand />}
-          </button>
+            {isExpanded ? (
+              <Minimize2 className="w-4 h-4 sm:w-5 sm:h-5" />
+            ) : (
+              <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />
+            )}
+          </Button>
         </div>
       </motion.div>
+
+      <ShareDialog
+        isOpen={isShareDialogOpen}
+        onClose={() => setIsShareDialogOpen(false)}
+        onShare={handleShare}
+        onCopyLink={copyShareLink}
+      />
     </AnimatePresence>
   );
 };
+
+export default MusicPlayer;

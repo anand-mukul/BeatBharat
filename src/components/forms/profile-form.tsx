@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -17,26 +16,22 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/authContext";
 import { useEffect } from "react";
 import { LoadingSpinner } from "../ui/loading-spinner";
+import axios from "axios";
 
 const profileFormSchema = z.object({
-  username: z.string()
-  .min(2, { message: "Username must be at least 2 characters." })
-  .max(30, { message: "Username must not be longer than 30 characters." })
-  .refine((value) => /^[a-z0-9_]+$/.test(value), {
-    message: "Username must be lowercase and can only contain letters, numbers, and underscores.",
-  }),
+  username: z
+    .string()
+    .min(2, { message: "Username must be at least 2 characters." })
+    .max(30, { message: "Username must not be longer than 30 characters." })
+    .refine((value) => /^[a-z0-9_]+$/.test(value), {
+      message:
+        "Username must be lowercase and can only contain letters, numbers, and underscores.",
+    }),
   email: z
     .string({
       required_error: "Please select an email to display.",
@@ -55,7 +50,7 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export function ProfileForm() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshUser } = useAuth();
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -63,8 +58,8 @@ export function ProfileForm() {
       email: "",
       bio: "I own a computer.",
       urls: [
-        { value: "https://shadcn.com" },
-        { value: "http://twitter.com/shadcn" },
+        { value: "https://in.linkdin.com" },
+        { value: "https://twitter.com/@you" },
       ],
     },
     mode: "onChange",
@@ -82,15 +77,29 @@ export function ProfileForm() {
         email: user.email || "",
         bio: user.bio || "I own a computer.",
         urls: user.urls || [
-          { value: "https://shadcn.com" },
-          { value: "http://twitter.com/shadcn" },
+          { value: "https://in.linkdin.com" },
+          { value: "https://twitter.com/@you" },
         ],
       });
     }
   }, [user, form]);
 
-  function onSubmit(data: ProfileFormValues) {
-    toast.success("Profile updated successfully!");
+  async function onSubmit(data: ProfileFormValues) {
+    try {
+      const response = await axios.patch("/api/users/update-profile", data, {
+        withCredentials: true,
+      });
+      if (response.data.data.usernameChangeError) {
+        toast.warning(
+          `Profile updated, but username change failed: ${response.data.data.usernameChangeError}`
+        );
+      } else {
+        toast.success("Profile updated successfully!");
+      }
+      await refreshUser();
+    } catch (error) {
+      toast.error("Failed to update profile. Please try again.");
+    }
   }
 
   if (loading) {

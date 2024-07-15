@@ -120,3 +120,18 @@ export {
   DialogTitle,
   DialogDescription,
 }
+// export const usePlayTrack = () => {
+//   const playTrackRef = useRef<(track: Track) => void>();
+
+//   const setPlayTrack = (playTrackFunc: (track: Track) => void) => {
+//     playTrackRef.current = playTrackFunc;
+//   };
+
+//   const playTrack = (track: Track) => {
+//     if (playTrackRef.current) {
+//       playTrackRef.current(track);
+//     }
+//   };
+
+//   return { setPlayTrack, playTrack };
+// };

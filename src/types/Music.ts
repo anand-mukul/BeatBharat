@@ -1,29 +1,45 @@
 export interface Artist {
-    _id: string;
-    name: string;
-    image: string;
-  }
-  
-  export interface Track {
-    _id: string;
-    title: string;
-    artist: Artist;
-    album: string;
-    duration: number;
-    url: string;
-  }
-  
-  export interface PlaylistItem extends Track {
-    addedAt: Date;
-  }
-  
-  export interface Playlist {
-    _id: string;
-    name: string;
-    tracks: PlaylistItem[];
-  }
-  
-  export interface StreamingToken {
-    token: string;
-    expiresAt: Date;
-  }
+  _id: string;
+  name: string;
+  image: string;
+}
+
+export interface Track {
+  _id: string;
+  title: string;
+  artist: Artist;
+  duration: number;
+  url: string;
+  album?: string;
+  genre?: string[];
+  releaseDate?: string;
+  plays?: number;
+  type: "track";
+}
+
+export interface Playlist {
+  _id: string;
+  name: string;
+  tracks: Track[];
+  creator: string;
+  isPublic: boolean;
+}
+
+export interface UserProfile {
+  _id: string;
+  username: string;
+  email: string;
+  profilePicture?: string;
+  likedTracks: string[];
+  playlists: string[];
+}
+
+export interface ShareResponse {
+  shareUrl: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}

@@ -25,8 +25,8 @@ import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { format } from "date-fns";
 import { LoadingSpinner } from "../ui/loading-spinner";
-import { MusicPlayer } from "../music-player/MusicPlayer";
-import { Track } from "@/types/Music";
+import MusicPlayer from "../music-player/MusicPlayer";
+import { Track } from "../music-player/types";
 
 interface ArtistResult {
   _id: string;
@@ -261,6 +261,7 @@ export function SearchBar({ isExpanded, onClose }: SearchBarProps) {
         duration: result.duration || 0,
         url: result.url,
         album: "",
+        type: "track",
       };
       setCurrentTrack(track);
       setPlaylist((prevPlaylist) => {
@@ -509,9 +510,7 @@ export function SearchBar({ isExpanded, onClose }: SearchBarProps) {
             currentTrack={currentTrack}
             playlist={playlist}
             onTrackChange={handleTrackChange}
-            onLike={handleLike}
-            onDislike={handleDislike}
-            onShare={handleShare}
+            autoPlay={true}
           />
         </motion.div>
       )}

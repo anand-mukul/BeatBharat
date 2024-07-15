@@ -34,7 +34,7 @@ type AppearanceFormValues = z.infer<typeof appearanceFormSchema>;
 
 const defaultValues: Partial<AppearanceFormValues> = {
   font: "inter",
-  theme: "light",
+  theme: "dark",
 };
 
 export function AppearanceForm() {
