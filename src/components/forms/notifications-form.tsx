@@ -48,7 +48,7 @@ export function NotificationsForm() {
   });
 
   function onSubmit(data: NotificationsFormValues) {
-    toast.success("Settings updated successfully.");
+    toast.warning("Not implemented yet...");
   }
 
   return (

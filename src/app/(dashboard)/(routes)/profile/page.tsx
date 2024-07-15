@@ -8,6 +8,7 @@ import { AccountForm } from "@/components/forms/account-form";
 import { AppearanceForm } from "@/components/forms/appearance-form";
 import { NotificationsForm } from "@/components/forms/notifications-form";
 import { DisplayForm } from "@/components/forms/display-form";
+import LogoutButton from "@/components/logout-button";
 
 export const metadata: Metadata = {
   title: "BeatBharat - Settings",
@@ -27,6 +28,7 @@ const settingsTabs = [
 ];
 
 const SettingsPage = () => {
+
   return (
     <div className="h-full px-4 py-6 lg:px-8">
       <Tabs defaultValue="profile" className="h-full space-y-6">
@@ -38,10 +40,7 @@ const SettingsPage = () => {
               </TabsTrigger>
             ))}
           </TabsList>
-          <Button>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
+          <LogoutButton />
         </div>
         {settingsTabs.map(({ value, label, component: FormComponent }) => (
           <TabsContent

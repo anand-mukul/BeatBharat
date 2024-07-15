@@ -15,6 +15,12 @@ export interface RecentlyPlayedItem {
     email: string;
     fullName: string;
     avatar?: string;
+    bio?: string;
+    dob?: Date;
+    language?: string;
+    timezone?: string;
+    gender?: string;
+    urls?: { value: string }[];
     oauth: boolean;
     isVerified: boolean;
     refreshToken?: string;

@@ -3,17 +3,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Bell,
   CircleUser,
-  Music3,
   Search,
   Menu,
   ArrowLeft,
@@ -22,8 +13,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { SearchBar } from "./SearchBar";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/authContext";
 
 export function Navbar() {
+  const { logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
@@ -36,6 +30,14 @@ export function Navbar() {
 
   const handleDesktopSearchClose = () => {
     setIsSearchExpanded(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      toast.error("Error logging out");
+    }
   };
 
   return (
@@ -121,6 +123,7 @@ export function Navbar() {
                 </Button>
               </Link>
               <Button
+                onClick={handleLogout}
                 variant="ghost"
                 className="w-full justify-start text-red-500"
               >

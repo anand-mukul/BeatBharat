@@ -27,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await axios.get(`/api/users/current-user`, {
         withCredentials: true,
       });
+
       setUser(response.data.data.user);
     } catch (error) {
       setUser(null);
@@ -46,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         { email, password },
         { withCredentials: true }
       );
+
       setUser(response.data.data.user);
       router.push("/music");
     } catch (error) {

@@ -1,14 +1,16 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { CalendarIcon, CaretSortIcon, CheckIcon } from "@radix-ui/react-icons"
-import { format } from "date-fns"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import React, { useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CalendarIcon, CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import { format } from "date-fns";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import axios from "axios";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Command,
   CommandEmpty,
@@ -16,7 +18,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
   Form,
   FormControl,
@@ -25,14 +27,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { toast, Toaster } from "sonner"
+} from "@/components/ui/popover";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/authContext";
+import { LoadingSpinner } from "../ui/loading-spinner";
 
 const languages = [
   { label: "English", value: "en" },
@@ -44,10 +48,10 @@ const languages = [
   { label: "Japanese", value: "ja" },
   { label: "Korean", value: "ko" },
   { label: "Chinese", value: "zh" },
-] as const
+] as const;
 
 const accountFormSchema = z.object({
-  name: z
+  fullName: z
     .string()
     .min(2, {
       message: "Name must be at least 2 characters.",
@@ -61,24 +65,46 @@ const accountFormSchema = z.object({
   language: z.string({
     required_error: "Please select a language.",
   }),
-})
+});
 
-type AccountFormValues = z.infer<typeof accountFormSchema>
-
-// This can come from your database or API.
-const defaultValues: Partial<AccountFormValues> = {
-  // name: "Your name",
-  // dob: new Date("2023-01-23"),
-}
+type AccountFormValues = z.infer<typeof accountFormSchema>;
 
 export function AccountForm() {
+  const { user, refreshUser } = useAuth();
+
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema),
-    defaultValues,
-  })
+    defaultValues: {
+      fullName: "",
+      dob: undefined,
+      language: "",
+    },
+  });
 
-  function onSubmit(data: AccountFormValues) {
-    toast.success("Profile updated successfully.")
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        fullName: user.fullName || "",
+        dob: user.dob ? new Date(user.dob) : undefined,
+        language: user.language || "",
+      });
+    }
+  }, [user, form]);
+
+  async function onSubmit(data: AccountFormValues) {
+    try {
+      await axios.put("/api/users/update-account", data, {
+        withCredentials: true,
+      });
+      await refreshUser();
+      toast.success("Profile updated successfully.");
+    } catch (error) {
+      toast.error("Failed to update profile. Please try again.");
+    }
+  }
+
+  if (!user) {
+    return <LoadingSpinner />;
   }
 
   return (
@@ -86,12 +112,12 @@ export function AccountForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="name"
+          name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="Your name" {...field} />
+                <Input placeholder="Your full name" {...field} />
               </FormControl>
               <FormDescription>
                 This is the name that will be displayed on your profile and in
@@ -182,7 +208,7 @@ export function AccountForm() {
                             value={language.label}
                             key={language.value}
                             onSelect={() => {
-                              form.setValue("language", language.value)
+                              form.setValue("language", language.value);
                             }}
                           >
                             <CheckIcon
@@ -211,5 +237,5 @@ export function AccountForm() {
         <Button type="submit">Update account</Button>
       </form>
     </Form>
-  )
+  );
 }

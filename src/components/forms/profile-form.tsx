@@ -26,16 +26,17 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/authContext";
+import { useEffect } from "react";
+import { LoadingSpinner } from "../ui/loading-spinner";
 
 const profileFormSchema = z.object({
-  username: z
-    .string()
-    .min(2, {
-      message: "Username must be at least 2 characters.",
-    })
-    .max(30, {
-      message: "Username must not be longer than 30 characters.",
-    }),
+  username: z.string()
+  .min(2, { message: "Username must be at least 2 characters." })
+  .max(30, { message: "Username must not be longer than 30 characters." })
+  .refine((value) => /^[a-z0-9_]+$/.test(value), {
+    message: "Username must be lowercase and can only contain letters, numbers, and underscores.",
+  }),
   email: z
     .string({
       required_error: "Please select an email to display.",
@@ -53,19 +54,19 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-// This can come from your database or API.
-const defaultValues: Partial<ProfileFormValues> = {
-  bio: "I own a computer.",
-  urls: [
-    { value: "https://shadcn.com" },
-    { value: "http://twitter.com/shadcn" },
-  ],
-};
-
 export function ProfileForm() {
+  const { user, loading } = useAuth();
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues: {
+      username: "",
+      email: "",
+      bio: "I own a computer.",
+      urls: [
+        { value: "https://shadcn.com" },
+        { value: "http://twitter.com/shadcn" },
+      ],
+    },
     mode: "onChange",
   });
 
@@ -74,8 +75,30 @@ export function ProfileForm() {
     control: form.control,
   });
 
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        username: user.username || "",
+        email: user.email || "",
+        bio: user.bio || "I own a computer.",
+        urls: user.urls || [
+          { value: "https://shadcn.com" },
+          { value: "http://twitter.com/shadcn" },
+        ],
+      });
+    }
+  }, [user, form]);
+
   function onSubmit(data: ProfileFormValues) {
     toast.success("Profile updated successfully!");
+  }
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    return <div>Please log in to view your profile.</div>;
   }
 
   return (
@@ -88,7 +111,7 @@ export function ProfileForm() {
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input placeholder="shadcn" {...field} />
+                <Input {...field} />
               </FormControl>
               <FormDescription>
                 This is your public display name. It can be your real name or a
@@ -104,21 +127,11 @@ export function ProfileForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a verified email to display" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="m@example.com">m@example.com</SelectItem>
-                  <SelectItem value="m@google.com">m@google.com</SelectItem>
-                  <SelectItem value="m@support.com">m@support.com</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Input {...field} type="email" />
+              </FormControl>
               <FormDescription>
-                You can manage verified email addresses in your{" "}
-                <Link href="/examples/forms">email settings</Link>.
+                This is your verified email address.
               </FormDescription>
               <FormMessage />
             </FormItem>

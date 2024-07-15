@@ -21,8 +21,9 @@ export async function middleware(request: NextRequest) {
   if (!accessToken && refreshToken) {
     try {
       const response = await axios.post(
-        `/api/users/refresh-token`,
-        { refreshToken }
+        `http://localhost:7777/api/v1/users/refresh-token`,
+        { refreshToken },
+        { withCredentials: true }
       );
       const { accessToken: newAccessToken } = response.data.data;
 
@@ -30,6 +31,7 @@ export async function middleware(request: NextRequest) {
       response2.cookies.set("accessToken", newAccessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
       });
       return response2;
     } catch (error) {
@@ -42,9 +44,15 @@ export async function middleware(request: NextRequest) {
 
   if (accessToken) {
     try {
-      await axios.get(`/api/users/current-user`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+      const headers = {
+        Authorization: `Bearer ${accessToken}`,
+      };
+
+      await axios.get(`http://localhost:7777/api/v1/users/current-user`, {
+        headers: headers,
+        withCredentials: true,
       });
+
       return NextResponse.next();
     } catch (error) {
       const response = NextResponse.redirect(new URL("/sign-in", request.url));
@@ -53,7 +61,6 @@ export async function middleware(request: NextRequest) {
       return response;
     }
   }
-
   return NextResponse.next();
 }
 
