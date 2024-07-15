@@ -26,7 +26,7 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { LoadingSpinner } from "../ui/loading-spinner";
 import MusicPlayer from "../music-player/MusicPlayer";
-import { Track } from "../music-player/types";
+import { Track } from "@/types/Music";
 
 interface ArtistResult {
   _id: string;
