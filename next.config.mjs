@@ -16,7 +16,7 @@ const nextConfig = {
         hostname: "images.unsplash.com",
         port: "",
         pathname: "/**",
-      }
+      },
     ],
   },
 
@@ -24,7 +24,7 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: `http://localhost:7777/api/v1/:path*`,
+        destination: `${process.env.BACKEND_URL}/:path*`,
       },
     ];
   },

@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
   if (!accessToken && refreshToken) {
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/refresh-token`,
+        `${process.env.BACKEND_URL}/users/refresh-token`,
         { refreshToken },
         { withCredentials: true }
       );
@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
         Authorization: `Bearer ${accessToken}`,
       };
 
-      await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/current-user`, {
+      await axios.get(`${process.env.BACKEND_URL}/users/current-user`, {
         headers: headers,
         withCredentials: true,
       });
