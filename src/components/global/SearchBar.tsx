@@ -73,7 +73,7 @@ interface ApiResponse {
 interface SearchResponse {
   data: ApiResponse;
 }
-const placeholders = ["songs", "artists", "albums", "playlists"];
+const placeholders = ["songs", "artists", "albums", "playlists", "friends"];
 
 export function SearchBar({ isExpanded, onClose }: SearchBarProps) {
   const [query, setQuery] = useState("");
@@ -260,7 +260,6 @@ export function SearchBar({ isExpanded, onClose }: SearchBarProps) {
         },
         duration: result.duration || 0,
         url: result.url,
-        album: "",
         type: "track",
       };
       setCurrentTrack(track);
@@ -518,13 +517,15 @@ export function SearchBar({ isExpanded, onClose }: SearchBarProps) {
   );
 }
 
-const formatDuration = (duration: number): string => {
-  const minutes = Math.floor(duration / 60000);
-  const seconds = Math.floor((duration % 60000) / 1000);
-  return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+const formatDuration = (milliseconds: number) => {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainingSeconds = totalSeconds % 60;
+
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
 const formatReleaseDate = (dateString: string) => {
   const date = new Date(dateString);
-  return format(date, "MMMM dd, yyyy");
+  return format(date, "dd MM, yyyy");
 };

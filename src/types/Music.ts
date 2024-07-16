@@ -1,7 +1,17 @@
 export interface Artist {
-  _id: string;
-  name: string;
-  image: string;
+  _id?: string;
+  name?: string;
+  image?: string;
+}
+
+export interface Album {
+  _id?: string;
+  title: string;
+  artist?: Artist;
+  tracks?: Track[];
+  releaseDate?: string;
+  genre?: string[];
+  coverArt?: string;
 }
 
 export interface Track {
@@ -10,7 +20,7 @@ export interface Track {
   artist: Artist;
   duration: number;
   url: string;
-  album?: string;
+  album?: Album;
   genre?: string[];
   releaseDate?: string;
   plays?: number;
@@ -18,11 +28,14 @@ export interface Track {
 }
 
 export interface Playlist {
+  description: string;
   _id: string;
   name: string;
   tracks: Track[];
   creator: string;
   isPublic: boolean;
+  updatedAt: string;
+  createdAt: string;
 }
 
 export interface UserProfile {
@@ -40,6 +53,14 @@ export interface ShareResponse {
 
 export interface ApiResponse<T> {
   success: boolean;
-  message: string;
   data: T;
+  message: string;
+}
+
+export interface PaginatedResponse<T> {
+  albums: Album[];
+  data: T;
+  page: number;
+  limit: number;
+  total: number;
 }

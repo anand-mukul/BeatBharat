@@ -1,21 +1,80 @@
-import { Metadata } from "next";
+"use client";
+
 import { PlusCircledIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PodcastEmptyPlaceholder } from "@/components/podcast-empty-placeholder";
-import { listenNowAlbums, madeForYouAlbums } from "@/data/albums";
 import { AlbumArtwork } from "@/components/album-artwork";
+import { useEffect, useState } from "react";
+import { Album } from "@/types/Music";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { fetchAlbums, fetchTopPicks } from "@/data/server";
+import { generateUniqueKey } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "BeatBharat - Music",
-  description: "Listen the Best Music.",
-};
+const MusicPage = () => {
+  const [listenNowAlbums, setListenNowAlbums] = useState<Album[]>([]);
+  const [topPicks, setTopPicks] = useState<Album[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const router = useRouter();
 
-type Props = {};
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [albumsResponse, picks] = await Promise.all([
+          fetchAlbums(page),
+          fetchTopPicks(),
+        ]);
 
-const MusicPage = (props: Props) => {
+        if (albumsResponse && Array.isArray(albumsResponse.albums)) {
+          setListenNowAlbums((prevAlbums) => [
+            ...prevAlbums,
+            ...albumsResponse.albums,
+          ]);
+          setHasMore(albumsResponse.albums.length === albumsResponse.limit);
+        } else {
+          toast.error("Failed to fetch albums data");
+          setHasMore(false);
+        }
+
+        if (Array.isArray(picks)) {
+          setTopPicks(picks);
+        } else {
+          toast.error("Failed to fetch top picks data");
+        }
+      } catch (error) {
+        toast.error("Failed to fetch music data");
+        setHasMore(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [page]);
+
+  const handleAlbumClick = (album: Album) => {
+    if (album._id) {
+      router.push(`/album/${album._id}`);
+    } else {
+      toast.error("Album ID is undefined");
+    }
+  };
+
+  const loadMoreAlbums = () => {
+    if (hasMore) {
+      setPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  if (isLoading && page === 1) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <div className="h-full px-4 py-6 lg:px-8">
       <Tabs defaultValue="music" className="h-full space-y-6">
@@ -51,17 +110,22 @@ const MusicPage = (props: Props) => {
           <div className="relative">
             <ScrollArea>
               <div className="flex space-x-4 pb-4">
-                {" "}
-                {listenNowAlbums.map((album) => (
+                {listenNowAlbums.map((album: Album) => (
                   <AlbumArtwork
-                    key={album.name}
+                    key={generateUniqueKey()}
                     album={album}
-                    className="w-[250px]"
+                    className="w-[250px] cursor-pointer"
                     aspectRatio="portrait"
                     width={250}
                     height={330}
+                    onClick={() => handleAlbumClick(album)}
                   />
                 ))}
+                {hasMore && (
+                  <Button variant={"secondary"} onClick={loadMoreAlbums} disabled={isLoading} className="w-[250px] h-[330px]">
+                    {isLoading ? <LoadingSpinner /> : "Load More"}
+                  </Button>
+                )}
               </div>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
@@ -71,23 +135,22 @@ const MusicPage = (props: Props) => {
               Made for You
             </h2>
             <p className="text-sm text-muted-foreground">
-              Your personal playlists. Updated daily.
+              Top picks Albums. Updated daily.
             </p>
           </div>
           <Separator className="my-4" />
           <div className="relative">
             <ScrollArea>
               <div className="flex space-x-4 pb-4">
-                {" "}
-                {/* album now */}
-                {madeForYouAlbums.map((album) => (
+                {topPicks.map((album, i) => (
                   <AlbumArtwork
-                    key={album.name}
+                    key={generateUniqueKey()}
                     album={album}
-                    className="w-[150px]"
+                    className="w-[150px] cursor-pointer"
                     aspectRatio="square"
                     width={150}
                     height={150}
+                    onClick={() => handleAlbumClick(album)}
                   />
                 ))}
               </div>

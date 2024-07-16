@@ -10,6 +10,8 @@ import AdditionalControls from "@/components/music-player/AdditionalControls";
 import ShareDialog from "@/components/music-player/ShareDialog";
 import { Track } from "@/types/Music";
 import Image from "next/image";
+import { v4 as uuidv4 } from "uuid";
+import { generateUniqueKey } from "@/lib/utils";
 
 interface MusicPlayerProps {
   currentTrack: Track | null;
@@ -101,7 +103,8 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
             >
               {currentTrack && (
                 <Image
-                  src={currentTrack.artist.image}
+                  key={generateUniqueKey()}
+                  src={currentTrack?.artist?.image || "/fallback.png"}
                   alt={`${currentTrack.title} cover`}
                   layout="fill"
                   objectFit="cover"
@@ -114,7 +117,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
                 {currentTrack?.title}
               </h3>
               <p className="text-gray-400 text-xs sm:text-sm">
-                {currentTrack?.artist.name}
+                {currentTrack?.artist?.name}
               </p>
             </div>
           </div>

@@ -4,8 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProviderWrapper } from '@/components/AuthProviderWrapper';
-
+import { AuthProviderWrapper } from "@/components/AuthProviderWrapper";
 
 const fontSans = FontSans({
   subsets: ["latin"],
