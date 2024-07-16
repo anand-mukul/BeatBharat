@@ -15,6 +15,7 @@ import Link from "next/link";
 import { SearchBar } from "./SearchBar";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/authContext";
+import UserProfileButton from "./UserProfileButton";
 
 export function Navbar() {
   const { logout } = useAuth();
@@ -70,12 +71,7 @@ export function Navbar() {
                   <div className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></div>
                 </Button>
 
-                <Link href={"/profile"}>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <CircleUser className="h-6 w-6" />
-                    <span className="sr-only">User menu</span>
-                  </Button>
-                </Link>
+                <UserProfileButton />
               </div>
 
               <div className="md:hidden flex items-center space-x-2">
